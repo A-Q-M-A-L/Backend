@@ -1,8 +1,17 @@
 import User from "../model/userModel.js";
 import CatchAsync from "../utils/CatchAsync.js";
+import { promisify } from "util";
+const freshToken = (id) => {
 
-export const signUp = CatchAsync( async (req, res) => {
-  
+    return jwt.sign({ id }, "process.env.JWT_SECRET", {
+        expiresIn: process.env.JWT_EXPIRES_IN
+    })
+
+}
+
+
+export const signUp = CatchAsync(async (req, res) => {
+
     const payload = {
         name: req.body.name,
         email: req.body.email,
@@ -10,7 +19,7 @@ export const signUp = CatchAsync( async (req, res) => {
         passwordConfirm: req.body.passwordConfirm
     }
 
-    if(payload.name === "" || payload.email === "" || payload.password === "" || payload.passwordConfirm === ""){
+    if (payload.name === "" || payload.email === "" || payload.password === "" || payload.passwordConfirm === "") {
         return next(new AppError("Please fill all the fields", 400))
     }
 
@@ -18,9 +27,56 @@ export const signUp = CatchAsync( async (req, res) => {
 
     res.status(200).json({
         message: "Signup successfully",
+        token: freshToken(newUser._id),
         data: {
             newUser
         }
 
     })
+})
+
+export const login = CatchAsync(async (req, res) => {
+
+    const payload = {
+        email: req.body.email,
+        password: req.body.password
+    }
+
+    if (payload.email === "" || payload.password === "") return next(new AppError("Please fill all the fields", 400))
+
+    const user = await User.findOne({ email: payload.email }).select("+password")
+
+    if (!user || !(user.correctPassword(payload.password, user.password))) return next(new AppError("Enter a vaild email or password", 401))
+
+    res.status(200).json({
+        message: "Login successfully",
+        token: freshToken(user._id)
+    })
+
+
+})
+
+
+const protect = CatchAsync(async (req, res, next) => {
+
+    // 1) Getting token and check if it's there
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+        token = req.headers.authorization.split(" ")[1];
+    }
+    if (!token) return next(new AppError("You are not logged in! Please log in to get access", 401))
+
+    // 2) Verification token
+    const decoded = await promisify(jwt.verify)(token, "process.env.JWT_SECRET");
+
+    // 3) Check if user still exists
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) return next(new AppError("This user no longer exists", 401));
+
+    // 4) Check if user changed password after the token was issued
+    if (currentUser.changedPasswordAfter(decoded.iat)) return next(new AppError("User recently changed password! Please log in again", 401));
+
+    // GRANT ACCESS TO PROTECTED ROUTE
+    req.user = currentUser;
+    next();
 })
