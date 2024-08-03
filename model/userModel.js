@@ -6,26 +6,45 @@ const userSchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter your name"],
     trim: true,
+    lowercase: true,
   },
   email: {
     type: String,
     required: [true, "Please enter your email"],
     unique: true,
-    validato: [validator.isEmail, "Please enter a valid email"],
+    validate: [validator.isEmail, "Please enter a valid email"],
   },
-  photo:{
-    type:String
-  },  
+  photo: {
+    type: String
+  },
   password: {
     type: String,
     required: [true, "Please enter a password"],
+    minlength: [8, "Password should be atleast 8 characters"],
+    select: false
   },
   passwordConfirm: {
-    type:String,
+    type: String,
     required: [true, "Please re-enter your password"],
+    validate: {
+      validator: function (el) {
+        return el === this.password;
+      },
+      message: "Passwords are not the same",
+    }
   }
- 
- 
+})
+
+userSchema.pre("save", async function (next) {
+  // Only run this function if password was actually modified
+  if (!this.isModified("password")) return next();
+
+  // Hash the password with cost of 12
+  this.password = await bcrypt.hash(this.password, 12);
+
+  // Delete passwordConfirm field
+  this.passwordConfirm = undefined;
+  next();
 })
 
 const User = mongoose.model("User", userSchema);

@@ -1,5 +1,5 @@
-import { nextTick } from "process";
-import User from "../model/userModel";
+import User from "../model/userModel.js";
+import CatchAsync from "../utils/CatchAsync.js";
 
 export const signUp = CatchAsync( async (req, res) => {
   
