@@ -57,7 +57,7 @@ export const login = CatchAsync(async (req, res) => {
 })
 
 
-const protect = CatchAsync(async (req, res, next) => {
+export const protect = CatchAsync(async (req, res, next) => {
 
     // 1) Getting token and check if it's there
     let token;
@@ -79,4 +79,53 @@ const protect = CatchAsync(async (req, res, next) => {
     // GRANT ACCESS TO PROTECTED ROUTE
     req.user = currentUser;
     next();
+})
+
+export const restrictTo = (...roles) => {
+    return (req, res, next) => {
+        if (!roles.includes(req.user.role)) {
+            return next(new AppError("You do not have permission to perform this action", 403))
+        }
+        next()
+    }
+
+}
+
+export const forgotPassword = CatchAsync(async (req, res, next) => {
+    
+    const payload = {
+        email: req.body.email
+    }
+
+    if (payload.email === "") return next(new AppError("Please fill all the fields", 400))
+
+    const user = await User.findOne({ email: payload.email })
+
+    if (!user) return next(new AppError("User not found with this email", 404))
+
+    const restToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false })
+
+     const restUrl = `${req.protocol}://${req.get("host")}/api/v1/users/resetPassword/${restToken}`
+
+     try {
+        await sendEmail({
+            email: user.email,
+            subject: "Your password reset token (valid for 10 minutes)",
+            message: restUrl
+        })
+     }catch (err) {
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save({ validateBeforeSave: false })
+     }
+
+    res.status(200).json({
+        message: "Token sent to email"
+    })
+})
+
+export const resetPassword = CatchAsync(async (req, res, next) => {
+
+    
 })
