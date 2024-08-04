@@ -16,8 +16,13 @@ const userSchema = mongoose.Schema({
   },
   role:{
     type: String,
-    enum: ["user", "admin"],
-    default: "user"
+    enum: ["employee", "projectManager", "admin"],
+    default: "employee"
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+    select: false
   },
   photo: {
     type: String
@@ -61,6 +66,12 @@ userSchema.pre("save", function (next) {
   if (!this.isModified("password") || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000;
+  next();
+})
+
+userSchema.pre(/^find/, function (next) {
+  // this points to the current query
+  this.find({ isActive: { $ne: false } });
   next();
 })
 

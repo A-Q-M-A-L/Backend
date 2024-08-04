@@ -12,6 +12,19 @@ const freshToken = (id) => {
 const createSendToken = (user, statusCode, res) => {
     const token = freshToken(user._id)
 
+    const cookieOptions = {
+        expires: new Date(
+            Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+        ),
+        httpOnly: true
+    }
+
+    if (process.env.NODE_ENV === "production") cookieOptions.secure = true
+
+    res.cookie("jwt", token, cookieOptions)
+
+    user.password = undefined
+
     res.status(statusCode).json({
         status: "success",
         token,
@@ -28,7 +41,8 @@ export const signUp = CatchAsync(async (req, res) => {
         name: req.body.name,
         email: req.body.email,
         password: req.body.password,
-        passwordConfirm: req.body.passwordConfirm
+        passwordConfirm: req.body.passwordConfirm,
+        role: req.body.role
     }
 
     if (payload.name === "" || payload.email === "" || payload.password === "" || payload.passwordConfirm === "") {
@@ -37,7 +51,7 @@ export const signUp = CatchAsync(async (req, res) => {
 
     const newUser = await User.create(payload)
 
-   createSendToken(newUser, 201, res)
+    createSendToken(newUser, 201, res)
 })
 
 export const login = CatchAsync(async (req, res) => {
@@ -53,7 +67,7 @@ export const login = CatchAsync(async (req, res) => {
 
     if (!user || !(user.correctPassword(payload.password, user.password))) return next(new AppError("Enter a vaild email or password", 401))
 
-   createSendToken(user, 200, res)
+    createSendToken(user, 200, res)
 
 
 })
@@ -94,7 +108,7 @@ export const restrictTo = (...roles) => {
 }
 
 export const forgotPassword = CatchAsync(async (req, res, next) => {
-    
+
     const payload = {
         email: req.body.email
     }
@@ -108,21 +122,21 @@ export const forgotPassword = CatchAsync(async (req, res, next) => {
     const restToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false })
 
-     const restUrl = `${req.protocol}://${req.get("host")}/api/v1/users/resetPassword/${restToken}`
+    const restUrl = `${req.protocol}://${req.get("host")}/api/v1/users/resetPassword/${restToken}`
 
-     try {
+    try {
         await sendEmail({
             email: user.email,
             subject: "Your password reset token (valid for 10 minutes)",
             message: restUrl
         })
-     }catch (err) {
+    } catch (err) {
         user.passwordResetToken = undefined;
         user.passwordResetExpires = undefined;
         await user.save({ validateBeforeSave: false })
-     }
+    }
 
-  createSendToken(user, 200, res)
+    createSendToken(user, 200, res)
 })
 
 export const resetPassword = CatchAsync(async (req, res, next) => {
@@ -139,8 +153,8 @@ export const resetPassword = CatchAsync(async (req, res, next) => {
     user.passwordResetExpires = undefined;
     await user.save();
 
-   createSendToken(user, 200, res)
-    
+    createSendToken(user, 200, res)
+
 })
 
 export const updatePassword = CatchAsync(async (req, res, next) => {
