@@ -1,14 +1,13 @@
 import express from 'express';
-// import {signup} from '../controllers/userController.js';
-import { forgotPassword, login, protect, resetPassword, signUp, updatePassword, updateMe } from '../controllers/authController.js';
+import { forgotPassword, login, protect, resetPassword, restrictTo, signUp, updatePassword } from '../controllers/authController.js';
 import { updateMe } from '../controllers/userController.js';
 
 const router = express.Router();
 
 router.post('/signup', protect , restrictTo('admin') ,signUp);
-router.post('/login', login);
+router.post('/', login);
 
-router.post('/forgotPasseord', forgotPassword);
+router.post('/forgotPassword', protect ,forgotPassword);
 router.post('/resetPassword/:token', resetPassword);
 
 router.patch('/updateMyPassword', protect, updatePassword);

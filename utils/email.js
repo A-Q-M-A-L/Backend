@@ -1,20 +1,38 @@
 import nodemailer from 'nodemailer';
-import CatchAsync from './catchAsync.js';
+import dotenv from 'dotenv';
+import CatchAsync from './CatchAsync.js';
 
-const sendEmail = CatchAsync( async (Option) => {
+// Load environment variables from .env file
+dotenv.config({
+    path: '../.env'
+});
+console.log(process.env.EMAIL_USER+ "ehllsdf" + process.env.EMAIL_PASS);
+
+
+const sendEmail = CatchAsync(async (options) => {
     const transporter = nodemailer.createTransport({
-        service: 'Gmail', 
+        service: 'Gmail',
         auth: {
-            user: "aqmalfaraz@gmail.com", // generated ethereal user
-            pass: "hAcker!!1", // generated ethereal password
+            user: process.env.EMAIL_USER, // use environment variables for security
+            pass: process.env.EMAIL_PASS,
         },
     });
 
     const mailOptions = {
-        from: '"Aqmalfaraz" <aqmalfaraz@gmail.com>', // sender address
-        to: Option.email, // list of receivers
-        subject: Option.subject, // Subject line
-        text: Option.message, // plain text body
+        from: `"Aqmalfaraz" <${process.env.EMAIL_USER}>`, // sender address
+        to: options.email, // list of receivers
+        subject: options.subject, // Subject line
+        text: options.message, // plain text body
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email sent: ' + info.response);
+    } catch (error) {
+        console.error('Error sending email:', error);
+        throw error;
     }
-      await transporter.sendMail(mailOptions);
-})
+});
+
+export default sendEmail;
+

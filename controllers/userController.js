@@ -10,6 +10,9 @@ const filterObj = (obj, ...allowedFields) => {
 
 }
 
+
+
+// Update user details
 export const updateMe = CatchAsync(async (req, res, next) => {
     // 1) Create error if user POSTs password data
     if (req.body.password || req.body.passwordConfirm) {
@@ -36,6 +39,7 @@ export const updateMe = CatchAsync(async (req, res, next) => {
     })
 })
 
+// Delete user
 export const deleteMe = CatchAsync(async (req, res, next) => {
     await User.findByIdAndUpdate(req.user.id, { isActive: false });
 

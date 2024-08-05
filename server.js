@@ -1,24 +1,25 @@
 import app from "./app.js";
-// import mongoose from "mongoose";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 dotenv.config({
   path: "./.env"
 })
 
-// mongoose.connect("mongodb+srv://aqmalfaraz:hAcker!!1@one.kj2cpwr.mongodb.net/?retryWrites=true&w=majority&appName=one",{
-//   dbName: "testBackend",
-// })
-//   .then(() => {
-//     console.log("Connected to MongoDB");
-//   })
-//   .catch((error) => {
-//     console.error("ErroR connecting to MongoDB"), error
-// })
+const DBConnect = async () => {
+  try {
+    await mongoose.connect('mongodb+srv://hello:UQOl1iICDvIci7SU@one.kj2cpwr.mongodb.net/?retryWrites=true&w=majority&appName=one');
+    console.log("MongoDB connected successfully");
+  }
+  catch (error) {
 
+    console.log("MongoDB connection failed" + error.message)
 
+  }
+}
+DBConnect();
 
-const PORT = 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-})
+});
