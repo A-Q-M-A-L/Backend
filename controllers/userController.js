@@ -1,5 +1,37 @@
 import User from "../model/userModel.js";
 import CatchAsync from "../utils/CatchAsync.js";
+import multer from "multer";
+import sharp from "sharp";
+
+const multerStorege = multer.memoryStorage()
+
+const upload = multer({
+    storage: multerStorege,
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image')) {
+            cb(null, true)
+        } else {
+            cb(new AppError('Not an image! Please upload only images.', 400), false)
+        }
+    }
+})
+
+export const uploadUserPhoto = upload.single('photo');
+
+export const resizeUserPhoto = CatchAsync(async (req, res, next) => {
+    if (!req.file) return next();
+
+    req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+    sharp(req.file.buffer)
+    .resize(500, 500)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/users/${req.file.filename}`);   
+
+
+    next();
+})
 
 const filterObj = (obj, ...allowedFields) => {
     const newObj = {};
@@ -26,6 +58,7 @@ export const updateMe = CatchAsync(async (req, res, next) => {
 
     // 2) Update user document
     const filteredBody = filterObj(req.body, 'name', 'email');
+    if (req.file) filteredBody.photo = req.file.filename;
     const updatedUser = await User.findByIdAndUpdate({ _id: req.user.id }, filteredBody, {
         new: true,
         runValidators: true,
