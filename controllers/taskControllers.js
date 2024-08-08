@@ -21,19 +21,17 @@ export const createTask = CatchAsync(async (req, res, next) => {
         data: {
             task
         }
+
     })
 })
 
 // Get Task for Specific User
 export const getTasks = CatchAsync(async (req, res, next) => {
 
-    console.log(req.user._id.toString());
-    
 
     const tasks = await Task.find({ assignedTo: req.user._id });
- 
-    console.log(tasks);
-    
+
+
 
     res.status(200).json({
         status: "success",
@@ -72,7 +70,7 @@ export const deleteTask = CatchAsync(async (req, res, next) => {
     })
 })
 
- 
+
 // Get All Tasks for all users by admin
 export const getAllTasks = CatchAsync(async (req, res, next) => {
     const tasks = await Task.find().populate({

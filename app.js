@@ -9,7 +9,7 @@ import mongoSaniotize from 'express-mongo-sanitize'
 import xss from 'xss-clean'
 import hpp from 'hpp';
 import morgan from 'morgan';
-
+import cors from 'cors';
 
 const app = express();
 
@@ -29,6 +29,8 @@ app.use(morgan('dev'));
 app.use(mongoSaniotize())
 app.use(xss())
 app.use(hpp())
+
+app.use(cors());
 
 app.use('/api', limit);
 

@@ -49,3 +49,42 @@ export const deleteMe = CatchAsync(async (req, res, next) => {
     })
 
 })
+
+// Get All User 
+export const getAllUsers = CatchAsync(async (req, res, next) => {
+    const users = await User.find({ isActive: true });
+
+    res.status(200).json({
+        status: 'success',
+        results: users.length,
+        data: {
+            users,
+        },
+    })
+})
+
+
+// Get Single User
+export const getSingleUser = CatchAsync(async (req, res, next) => {
+    const user = await User.findById(req.params.id);
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user,
+        },
+    })
+})
+
+
+// Create User
+export const createUser = CatchAsync(async (req, res, next) => {
+    const user = await User.create(req.body);
+
+    res.status(201).json({
+        status: 'success',
+        data: {
+            user,
+        },
+    })
+})

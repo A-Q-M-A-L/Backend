@@ -69,7 +69,7 @@ export const login = CatchAsync(async (req, res, next) => {
 
     const user = await User.findOne({ email: payload.email }).select("+password")
 
-    if (!user || !(user.correctPassword(payload.password, user.password))) return next(new AppError("Enter a vaild email or password", 401))
+    if (!user || !(await user.correctPassword(payload.password, user.password))) return next(new AppError("Enter a vaild email or password", 401))
 
     createSendToken(user, 200, res)
 
@@ -102,13 +102,25 @@ export const protect = CatchAsync(async (req, res, next) => {
 })
 
 export const restrictTo = (...roles) => {
-    return (req, res, next) => {
-        if (!roles.includes(req.user.role)) {
-            return next(new AppError("You do not have permission to perform this action", 403))
-        }
-        next()
-    }
-
+  
+        return (req, res, next) => {
+          // Check if the user's role is allowed
+          if (!roles.includes(req.user.role)) {
+            return res.status(403).json({
+              status: 'fail',
+              message: 'You do not have permission to perform this action'
+            });
+          }
+      
+          // Additional logic for projectManager role
+          if (req.user.role === 'projectManager' && req.body.role && req.body.role !== 'employee') {
+            next(new AppError('Project managers can only create employee accounts', 403));
+          }
+      
+          next();
+        };
+  
+      
 }
 
 export const forgotPassword = CatchAsync(async (req, res, next) => {
