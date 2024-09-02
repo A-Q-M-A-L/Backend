@@ -6,7 +6,7 @@ import CatchAsync from './CatchAsync.js';
 dotenv.config({
     path: '../.env'
 });
-console.log(process.env.EMAIL_USER+ "ehllsdf" + process.env.EMAIL_PASS);
+// console.log(process.env.EMAIL_USER+ "ehllsdf" + process.env.EMAIL_PASS);
 
 
 const sendEmail = CatchAsync(async (options) => {
@@ -27,9 +27,9 @@ const sendEmail = CatchAsync(async (options) => {
 
     try {
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent: ' + info.response);
+        // console.log('Email sent: ' + info.response);
     } catch (error) {
-        console.error('Error sending email:', error);
+        // console.error('Error sending email:', error);
         throw error;
     }
 });

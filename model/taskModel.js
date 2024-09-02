@@ -11,11 +11,12 @@ const taskSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["pending", "in progress", "queued", "completed"],
+        enum: ["pending", "indev", "queued", "completed"],
         default: "pending",
     },
     dueDate: {
         type: Date,
+        required: true,
     },
     assignedTo: {
         type: mongoose.Schema.Types.ObjectId,
@@ -24,7 +25,7 @@ const taskSchema = new mongoose.Schema({
     },
     createdDate: {
         type: Date,
-        default: Date.now,
+        default: Date.now
     },
     
 })

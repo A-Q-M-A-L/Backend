@@ -1,5 +1,4 @@
 import express from 'express';
-import path from 'path';
 import userRoutes from './routes/userRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import rateLimit from 'express-rate-limit';
@@ -10,14 +9,20 @@ import xss from 'xss-clean'
 import hpp from 'hpp';
 import morgan from 'morgan';
 import cors from 'cors';
+import compression from 'compression';
 
 const app = express();
 
-app.use(helmet());
-const dirname = path.resolve(); // Get the directory name of the current file
+app.use(cors())
 
-app.use(express.json({ limit: '10kb' }))
-app.use(express.static(path.join(dirname, 'public'))); // Serve static files from the 'public' directory
+app.use(helmet({
+    crossOriginResourcePolicy: false,
+  }));
+
+
+app.use(express.json({ limit: '170kb' }))
+app.use('/public', express.static('public'));; // Serve static files from the 'public' directory
+app.use(express.urlencoded({ extended: true, limit: '170kb' }));
 
 const limit = rateLimit({
     windowMs: 60 * 60 * 1000, // 60 minutes
@@ -30,7 +35,8 @@ app.use(mongoSaniotize())
 app.use(xss())
 app.use(hpp())
 
-app.use(cors());
+app.use(compression())
+
 
 app.use('/api', limit);
 

@@ -6,9 +6,10 @@ import CatchAsync from "../utils/CatchAsync.js";
 export const createTask = CatchAsync(async (req, res, next) => {
     const { title, description, dueDate, status, assignedTo } = req.body;
 
+    // console.log(req.body);
 
 
-    const task = await Task.create({
+    await Task.create({
         title,
         description,
         status,
@@ -18,9 +19,7 @@ export const createTask = CatchAsync(async (req, res, next) => {
 
     res.status(201).json({
         status: "success",
-        data: {
-            task
-        }
+        message: "Task created successfully"
 
     })
 })
@@ -44,12 +43,13 @@ export const getTasks = CatchAsync(async (req, res, next) => {
 
 // Update Task by only admin for specific user
 export const updateTask = CatchAsync(async (req, res, next) => {
-    const { title, description, dueDate, status } = req.body;
+    const { title, description, dueDate, status, assignedTo } = req.body;
     const task = await Task.findByIdAndUpdate(req.params.id, {
         title,
         description,
         status,
-        dueDate
+        dueDate,
+        assignedTo
     }, { new: true, runValidators: true });
 
     res.status(200).json({
@@ -75,7 +75,7 @@ export const deleteTask = CatchAsync(async (req, res, next) => {
 export const getAllTasks = CatchAsync(async (req, res, next) => {
     const tasks = await Task.find().populate({
         path: 'assignedTo',
-        select: 'name email role'
+        select: ['name', 'photo']
     });
 
 
