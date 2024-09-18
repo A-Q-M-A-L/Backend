@@ -13,6 +13,13 @@ import compression from 'compression';
 
 const app = express();
 
+
+// app.use(cors({
+//   origin: 'http://192.168.43.204:5173', // Replace with your frontend URL
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   allowedHeaders: ['Content-Type'],
+// }));
+
 app.use(cors())
 
 app.use(helmet({
